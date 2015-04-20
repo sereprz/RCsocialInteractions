@@ -211,7 +211,7 @@ hr {
 dvr &lt;- dbDriver(&quot;PostgreSQL&quot;)
 con &lt;- dbConnect(dvr, user = &quot;serena&quot;, dbname = &quot;postgres&quot;)
 
-messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
+messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(month from timestamp) between 2 and 4 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
 
 people &lt;- dbGetQuery(con, &quot;(select distinct sender_id, sender_email, sender_name from messages);&quot;)
 people &lt;- people[!duplicated(people$sender_id), ]
@@ -263,33 +263,12 @@ for (i in 1:length(ids)) {
 
 <h4>Graphics</h4>
 
-<pre><code class="r">require(igraph)
-</code></pre>
+<p>(igraphs is not available for R 3.2.0 so this does not run at the moment)</p>
 
-<pre><code>## Loading required package: igraph
-</code></pre>
-
-<pre><code>## Warning in library(package, lib.loc = lib.loc, character.only = TRUE,
-## logical.return = TRUE, : there is no package called &#39;igraph&#39;
-</code></pre>
-
-<pre><code class="r">net &lt;- graph.adjacency(network_m)
-</code></pre>
-
-<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;graph.adjacency&quot;
-</code></pre>
-
-<pre><code class="r">V(net)$size &lt;- 9
-</code></pre>
-
-<pre><code>## Error in V(net)$size &lt;- 9: object &#39;net&#39; not found
-</code></pre>
-
-<pre><code class="r">plot.igraph(net, vertex.label = people$sender_name[match(V(net)$name, people$sender_id)], 
-    layout = layout.fruchterman.reingold)
-</code></pre>
-
-<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;plot.igraph&quot;
+<pre><code class="igraph, tidy = TRUE, fig.width = 12, fig.height = 12">require(igraph)
+net &lt;- graph.adjacency(network_m)
+V(net)$size &lt;- 9
+plot.igraph(net,vertex.label=people$sender_name[match(V(net)$name, people$sender_id)],layout=layout.fruchterman.reingold)
 </code></pre>
 
 <p>Save image with png(&#39;igraph.png&#39;):</p>
@@ -303,10 +282,13 @@ for (i in 1:length(ids)) {
 
 <h4>Create JSON</h4>
 
-<pre><code class="r">nodes &lt;- list()
+<pre><code class="r">mentions_sent &lt;- apply(network_m, 1, sum)
+mentions_received &lt;- apply(network_m, 2, sum)
+nodes &lt;- list()
 for (i in 1:(n_ids)) {
     nodes[[as.character(rownames(network_m)[i])]] &lt;- list(id = i - 1, sender_name = people$sender_name[match(rownames(network_m)[i], 
-        people$sender_id)], batch = 1)
+        people$sender_id)], batch = 1, mentions_sent = as.numeric(mentions_sent[rownames(network_m)[i]]), 
+        mentions_received = as.numeric(mentions_received[rownames(network_m)[i]]))
 }
 
 links &lt;- list()

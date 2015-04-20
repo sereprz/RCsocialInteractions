@@ -7,7 +7,7 @@ require(RPostgreSQL)
 dvr <- dbDriver("PostgreSQL")
 con <- dbConnect(dvr, user = "serena", dbname = "postgres")
 
-messages <- dbGetQuery(con, "select * from messages where extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;")
+messages <- dbGetQuery(con, "select * from messages where extract(month from timestamp) between 2 and 4 and extract(year from timestamp) = 2015 and is_bot = False;")
 
 people <- dbGetQuery(con, "(select distinct sender_id, sender_email, sender_name from messages);")
 people <- people[!duplicated(people$sender_id), ]
@@ -61,43 +61,12 @@ for (i in 1:length(ids)) {
 }
 ```
 #### Graphics
-
-```r
+(igraphs is not available for R 3.2.0 so this does not run at the moment)
+```{ igraph, tidy = TRUE, fig.width = 12, fig.height = 12}
 require(igraph)
-```
-
-```
-## Loading required package: igraph
-```
-
-```
-## Warning in library(package, lib.loc = lib.loc, character.only = TRUE,
-## logical.return = TRUE, : there is no package called 'igraph'
-```
-
-```r
 net <- graph.adjacency(network_m)
-```
-
-```
-## Error in eval(expr, envir, enclos): could not find function "graph.adjacency"
-```
-
-```r
 V(net)$size <- 9
-```
-
-```
-## Error in V(net)$size <- 9: object 'net' not found
-```
-
-```r
-plot.igraph(net, vertex.label = people$sender_name[match(V(net)$name, people$sender_id)], 
-    layout = layout.fruchterman.reingold)
-```
-
-```
-## Error in eval(expr, envir, enclos): could not find function "plot.igraph"
+plot.igraph(net,vertex.label=people$sender_name[match(V(net)$name, people$sender_id)],layout=layout.fruchterman.reingold)
 ```
 
 Save image with png('igraph.png'):
@@ -110,10 +79,13 @@ Save image with png('igraph.png'):
 
 
 ```r
+mentions_sent <- apply(network_m, 1, sum)
+mentions_received <- apply(network_m, 2, sum)
 nodes <- list()
 for (i in 1:(n_ids)) {
     nodes[[as.character(rownames(network_m)[i])]] <- list(id = i - 1, sender_name = people$sender_name[match(rownames(network_m)[i], 
-        people$sender_id)], batch = 1)
+        people$sender_id)], batch = 1, mentions_sent = as.numeric(mentions_sent[rownames(network_m)[i]]), 
+        mentions_received = as.numeric(mentions_received[rownames(network_m)[i]]))
 }
 
 links <- list()

@@ -6,7 +6,7 @@ require(RPostgreSQL)
 dvr <- dbDriver('PostgreSQL')
 con <- dbConnect(dvr, user = 'serena', dbname = 'postgres')
 
-messages <- dbGetQuery(con, 'select * from messages where extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;')
+messages <- dbGetQuery(con, 'select * from messages where extract(month from timestamp) between 2 and 4 and extract(year from timestamp) = 2015 and is_bot = False;')
 
 people <- dbGetQuery(con, '(select distinct sender_id, sender_email, sender_name from messages);')
 people <- people[ !duplicated( people$sender_id),]
@@ -43,7 +43,8 @@ for(i in 1:length(ids)) {
 }
 ```
 #### Graphics
-```{r igraph, tidy = TRUE, fig.width = 12, fig.height = 12}
+(igraphs is not available for R 3.2.0 so this does not run at the moment)
+```{ igraph, tidy = TRUE, fig.width = 12, fig.height = 12}
 require(igraph)
 net <- graph.adjacency(network_m)
 V(net)$size <- 9
@@ -59,9 +60,11 @@ Save image with png('igraph.png'):
 #### Create JSON
 
 ```{r json, tidy = TRUE}
+mentions_sent <- apply(network_m, 1, sum)
+mentions_received <- apply(network_m, 2, sum)
 nodes <- list()
 for(i in 1:(n_ids)) {
-    nodes[[as.character(rownames(network_m)[i])]] <- list(id = i-1, sender_name = people$sender_name[ match(rownames(network_m)[i], people$sender_id) ], batch = 1)
+    nodes[[as.character(rownames(network_m)[i])]] <- list(id = i-1, sender_name = people$sender_name[ match(rownames(network_m)[i], people$sender_id) ], batch = 1, mentions_sent = as.numeric(mentions_sent[ rownames(network_m)[i]]), mentions_received = as.numeric(mentions_received[ rownames(network_m)[i]]) )
 }
 
 links <- list()

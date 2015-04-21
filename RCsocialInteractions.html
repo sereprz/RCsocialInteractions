@@ -12,10 +12,6 @@
 				stroke: #999;
 				stroke-opacity: .6;
 			}
-
-			svg {
-				background-color: #00005C;
-			}
  
 		</style>
 		<script src="http://d3js.org/d3.v3.min.js"></script>
@@ -24,13 +20,13 @@
 	<body>
 		<script type="text/javascript">
 		var width = 1000,
-		height = 600;
+		height = 700;
 
 		//var color = d3.scale.category20();
 
 		var force = d3.layout.force()
-		.charge(-200)
-    	.linkDistance(width/10)
+		.charge(-120)
+    	.linkDistance(100)
 		.size([width, height]);
 
 		var svg = d3.select("body").append("svg")
@@ -39,7 +35,7 @@
 
 		var nodeSize = d3.scale.linear();
 
-		var nodeColor = d3.scale.ordinal();
+		var nodeColor = d3.scale.quantile();
 
 		d3.json("social.json", function(error, graph) {
 			force
@@ -49,17 +45,18 @@
 
 			nodeSize
 				.domain([d3.min(graph.nodes, function(d) {return d.mentions_received;} ), d3.max(graph.nodes, function(d) {return d.mentions_received;})])
-				.range([5, 30]);
+				.rangeRound([5, 30])
 
 			nodeColor
 				.domain([d3.min(graph.nodes, function(d) {return d.mentions_sent;} ), d3.max(graph.nodes, function(d) {return d.mentions_sent;})])
-				.range(colorbrewer.Purples[6]);
+				.range(["#C299EB", /*"#B280E6",*/ "#A366E0", /*"#944DDB",*/ "#8533D6",/* "#7519D1",*/ "#6600CC", /*"#5C00B8",*/ "#5200A3", /*"#47008F",*/ "#3D007A", /*"#330066"*/, "#290052"]);
 
 			var link = svg.selectAll(".link")
 			.data(graph.links)
 			.enter().append("line")
 			.attr("class", "link")
-			.style("stroke-width", function(d) { return Math.sqrt(d.value); });
+			//.style("stroke-width", function(d) { return d.value; });
+			.style("marker-end",  "url(#suit)"); // Modified line
 
 			var node = svg.selectAll(".node")
 			.data(graph.nodes)
@@ -67,7 +64,9 @@
 			.attr("class", "node")
 			.attr("r", function(d) { return nodeSize(d.mentions_received);}) // scale?
 			.style("fill", function(d) { return nodeColor(d.mentions_received); })
-			.call(force.drag);
+			.call(force.drag)
+    		.on('click', connectedNodes);
+
 
 			node.append("title")
 			.text(function(d) { return d.sender_name + '\nMentions received: ' + d.mentions_received + '\nMentions sent: ' + d.mentions_sent; });
@@ -80,8 +79,66 @@
 
 			node.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; });
-  });
-});
+  			});
+			
+			//Toggle stores whether the highlighting is on
+			var toggle = 0;
+			//Create an array logging what is connected to what
+			var linkedByIndex = {};
+			for (i = 0; i < graph.nodes.length; i++) {
+			    linkedByIndex[i + "," + i] = 1;
+			};
+			graph.links.forEach(function (d) {
+			    linkedByIndex[d.source.index + "," + d.target.index] = 1;
+			});
+			
+			//This function looks up whether a pair are neighbours
+			function neighboring(a, b) {
+			    return linkedByIndex[a.index + "," + b.index];
+			}
+			
+			function connectedNodes() {
+			    if (toggle == 0) {
+			        //Reduce the opacity of all but the neighbouring nodes
+			        d = d3.select(this).node().__data__;
+			        node.style("opacity", function (o) {
+			            return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
+			        });
+			        
+			        link.style("opacity", function (o) {
+			            return d.index==o.source.index | d.index==o.target.index ? 1 : 0.1;
+			        });
+			        
+			        //Reduce the op
+			        toggle = 1;
+			    } else {
+			        
+			        //Put them back to opacity=1
+			        node.style("opacity", 1);
+			        link.style("opacity", 1);
+			        toggle = 0;
+			    }
+			}
+
+		} );
+		
+		//arrows
+		svg.append("defs").selectAll("marker")
+    		.data(["suit", "licensing", "resolved"])
+  			.enter().append("marker")
+    		.attr("id", function(d) { return d; })
+    		.attr("viewBox", "0 -5 10 10")
+    		.attr("refX", 25)
+    		.attr("refY", 0)
+    		.attr("markerWidth", 6)
+    		.attr("markerHeight", 6)
+    		.attr("orient", "auto")
+  			.append("path")
+    		.attr("d", "M0,-5L10,0L0,5 L10,0 L0, -5")
+    		.style("stroke", "#4679BD")
+    		.style("opacity", "0.6");
+
+	
 
 		</script>
 	</body>

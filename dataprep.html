@@ -211,10 +211,11 @@ hr {
 dvr &lt;- dbDriver(&quot;PostgreSQL&quot;)
 con &lt;- dbConnect(dvr, user = &quot;serena&quot;, dbname = &quot;postgres&quot;)
 
-messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(month from timestamp) between 2 and 4 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
+messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(day from timestamp) &gt; 15 and extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
 
 people &lt;- dbGetQuery(con, &quot;(select distinct sender_id, sender_email, sender_name from messages);&quot;)
 people &lt;- people[!duplicated(people$sender_id), ]
+people &lt;- people[-grep(&quot;@students.hackerschool.com&quot;, people$sender_email), ]
 
 dbDisconnect(con)
 </code></pre>

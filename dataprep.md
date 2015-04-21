@@ -7,10 +7,11 @@ require(RPostgreSQL)
 dvr <- dbDriver("PostgreSQL")
 con <- dbConnect(dvr, user = "serena", dbname = "postgres")
 
-messages <- dbGetQuery(con, "select * from messages where extract(month from timestamp) between 2 and 4 and extract(year from timestamp) = 2015 and is_bot = False;")
+messages <- dbGetQuery(con, "select * from messages where extract(day from timestamp) > 15 and extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;")
 
 people <- dbGetQuery(con, "(select distinct sender_id, sender_email, sender_name from messages);")
 people <- people[!duplicated(people$sender_id), ]
+people <- people[-grep("@students.hackerschool.com", people$sender_email), ]
 
 dbDisconnect(con)
 ```

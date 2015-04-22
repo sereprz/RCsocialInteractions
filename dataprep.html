@@ -211,7 +211,7 @@ hr {
 dvr &lt;- dbDriver(&quot;PostgreSQL&quot;)
 con &lt;- dbConnect(dvr, user = &quot;serena&quot;, dbname = &quot;postgres&quot;)
 
-messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(day from timestamp) &gt; 15 and extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
+messages &lt;- dbGetQuery(con, &quot;select * from messages where extract(day from timestamp) &lt; 8 and extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;&quot;)
 
 people &lt;- dbGetQuery(con, &quot;(select distinct sender_id, sender_email, sender_name from messages);&quot;)
 people &lt;- people[!duplicated(people$sender_id), ]
@@ -260,6 +260,9 @@ for (i in 1:length(ids)) {
         }
     }
 }
+
+write.table(network_m, &quot;network.csv&quot;, row.names = FALSE, col.names = FALSE, 
+    sep = &quot;,&quot;)
 </code></pre>
 
 <h4>Graphics</h4>

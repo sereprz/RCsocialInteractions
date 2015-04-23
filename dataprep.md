@@ -7,7 +7,7 @@ require(RPostgreSQL)
 dvr <- dbDriver("PostgreSQL")
 con <- dbConnect(dvr, user = "serena", dbname = "postgres")
 
-messages <- dbGetQuery(con, "select * from messages where extract(day from timestamp) < 8 and extract(month from timestamp) = 3 and extract(year from timestamp) = 2015 and is_bot = False;")
+messages <- dbGetQuery(con, "select * from messages where extract(month from timestamp) = 4 and extract(year from timestamp) = 2015 and is_bot = False;")
 
 people <- dbGetQuery(con, "(select distinct sender_id, sender_email, sender_name from messages);")
 people <- people[!duplicated(people$sender_id), ]
@@ -61,8 +61,9 @@ for (i in 1:length(ids)) {
     }
 }
 
-write.table(network_m, "network.csv", row.names = FALSE, col.names = FALSE, 
-    sep = ",")
+colnames(network_m) <- people$sender_name[match(colnames(network_m), people$sender_id)]
+
+write.table(network_m, "network.csv", row.names = FALSE, sep = ",")  #, col.names = FALSE)
 ```
 #### Graphics
 (igraphs is not available for R 3.2.0 so this does not run at the moment)

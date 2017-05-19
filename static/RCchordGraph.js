@@ -1,5 +1,5 @@
-d3.text('network.csv', function(error, data) {
-   
+d3.text('data/network.csv', function(error, data) {
+
     var data = d3.csv.parseRows(data);
     var labels = data.shift();
 
@@ -56,7 +56,7 @@ d3.text('network.csv', function(error, data) {
     //         "transform": function(d) {
     //       return "rotate(" + (((d.source.startAngle + d.source.endAngle) / 2) * 180 / Math.PI - 90) + ")"
     //               + "translate(" + (outerRadius + 10) + ")"
-    //               + "rotate(" +  -(((d.source.startAngle + d.source.endAngle) / 2) * 180 / Math.PI - 90) + ")"; }    })   
+    //               + "rotate(" +  -(((d.source.startAngle + d.source.endAngle) / 2) * 180 / Math.PI - 90) + ")"; }    })
     //     .text(function(d) {  return labels[d.source.index];  } );
 
         svg.append("g").selectAll(".arc")
@@ -69,7 +69,7 @@ d3.text('network.csv', function(error, data) {
             "transform": function(d) {
           return "rotate(" + (((d.startAngle + d.endAngle) / 2) * 180 / Math.PI - 90) + ")"
                   + "translate(" + (outerRadius + 10) + ")"
-                  + "rotate(" +  -(((d.startAngle + d.endAngle) / 2) * 180 / Math.PI - 90) + ")"; }    })   
+                  + "rotate(" +  -(((d.startAngle + d.endAngle) / 2) * 180 / Math.PI - 90) + ")"; }    })
         .text(function(d) {  return labels[d.index];  } );
 
 
